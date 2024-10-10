@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const grid = 20;
+    let snake = [{ x: 160, y: 160 }];
+    let count = 0;
+    let apple = { x: 320, y: 320 };
+    let dx = grid;
+    let dy = 0;
+    let score = 0;
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function resetApple() {
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+
+    function gameLoop() {
+      requestAnimationFrame(gameLoop);
+
+      if (++count < 4) {
+        return;
+      }
+
+      count = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Move snake
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+      snake.unshift(head);
+
+      // Snake eats apple
+      if (snake[0].x === apple.x && snake[0].y === apple.y) {
+        score++;
+        resetApple();
+      } else {
+        snake.pop();
+      }
+
+      // Check wall collision
+      if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
+        // Game over
+        alert(`Game Over! Your score: ${score}`);
+        snake = [{ x: 160, y: 160 }];
+        dx = grid;
+        dy = 0;
+        score = 0;
+        resetApple();
+      }
+
+      // Draw snake
+      ctx.fillStyle = "green";
+      snake.forEach(segment => {
+        ctx.fillRect(segment.x, segment.y, grid - 1, grid - 1);
+      });
+
+      // Draw apple
+      ctx.fillStyle = "red";
+      ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" && dx === 0) {
+        dx = -grid;
+        dy = 0;
+      } else if (e.key === "ArrowUp" && dy === 0) {
+        dx = 0;
+        dy = -grid;
+      } else if (e.key === "ArrowRight" && dx === 0) {
+        dx = grid;
+        dy = 0;
+      } else if (e.key === "ArrowDown" && dy === 0) {
+        dx = 0;
+        dy = grid;
+      }
+    });
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
