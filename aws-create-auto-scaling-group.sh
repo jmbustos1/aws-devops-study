@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Cargar las variables de entorno desde el archivo .env
