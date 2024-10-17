@@ -1,0 +1,12 @@
+name: General Workflow Manager
+
+on:
+  push:
+    branches:
+      - master  # Ejecutar cuando se haga un push a la rama master
+    paths:
+      - '**'    # Ejecutar cuando haya cambios en cualquier parte del repositorio
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
