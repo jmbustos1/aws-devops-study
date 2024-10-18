@@ -1,4 +1,4 @@
-name: Deploy AWS Elastic Beanstalk from awseb directory
+name: awseb-deploy
 
 on:
   workflow_dispatch:
