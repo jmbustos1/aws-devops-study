@@ -1,6 +1,7 @@
 name: Deploy AWS Elastic Beanstalk from awseb directory
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'awseb/**'  # Solo ejecuta el workflow cuando hay cambios dentro de la carpeta awseb
