@@ -1,3 +1,4 @@
+# .github/workflows/general-ci.yml
 name: General Workflow Manager
 
 on:
@@ -8,8 +9,12 @@ on:
       - '**'    # Ejecutar cuando haya cambios en cualquier parte del repositorio
 
 jobs:
-  manage:
+  trigger-specific-workflows:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Do nothing
-        run: echo "This is a placeholder for the general workflow"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check changes in awseb directory and trigger workflow
+        run: gh workflow run awseb-deploy.yml
