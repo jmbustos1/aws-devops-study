@@ -8,6 +8,7 @@ on:
 
     branches:
       - master  # Se ejecuta cuando hay un push en la rama master
+      - '.github/workflows/awseb-deploy.yml'  # También ejecuta el workflow si se modifica este archivo
 
 jobs:
   deploy:
