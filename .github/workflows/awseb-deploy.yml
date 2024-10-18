@@ -1,0 +1,47 @@
+name: awseb-deploy
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'awseb/**'  # Solo ejecuta el workflow cuando hay cambios dentro de la carpeta awseb
+
+    branches:
+      - master  # Se ejecuta cuando hay un push en la rama master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+        # Step 1: Checkout el código fuente
+        - name: Checkout code
+          uses: actions/checkout@v2
+  
+        # Step 2: Instalar la versión de Node.js (equivalente a 'runtime-versions' en buildspec)
+        - name: Set up Node.js
+          uses: actions/setup-node@v2
+          with:
+            node-version: 'latest'
+  
+        # Step 3: Fase de instalación (equivalente a 'install' en buildspec.yml)
+        - name: Install dependencies
+          run: |
+            echo "installing something"
+            # Aquí podrías agregar comandos para instalar paquetes si es necesario
+            # Ejemplo: npm install
+  
+        # Step 4: Pre build (equivalente a 'pre_build' en buildspec.yml)
+        - name: Pre build phase
+          run: echo "we are in the pre build phase"
+  
+        # Step 5: Build (equivalente a 'build' en buildspec.yml)
+        - name: Build phase
+          run: |
+            echo "we are in the build block"
+            echo "we will run some tests"
+            grep -Fq "Congratulations" index.html
+  
+        # Step 6: Post build (equivalente a 'post_build' en buildspec.yml)
+        - name: Post build phase
+          run: echo "we are in the post build phase"
