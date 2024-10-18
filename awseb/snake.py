@@ -13,8 +13,6 @@ red = (213, 50, 80)
 green = (0, 255, 0)
 blue = (50, 153, 213)
 
-
-
 # Dimensiones de la pantalla  
 width, height = 600, 400
 screen = pygame.display.set_mode((width, height))
