@@ -1,0 +1,17 @@
+.terraform
+.env
+
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Terraform variable files with sensitive information
+*.tfvars
+
+# Terraform directories and lock files
+.terraform/
+*.lock.hcl
+
+# Environment files with sensitive information
+.env
