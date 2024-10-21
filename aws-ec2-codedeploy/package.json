@@ -1,0 +1,14 @@
+{
+    "name": "snake-app",
+    "version": "1.0.0",
+    "description": "A simple Snake game using Node.js and Express.",
+    "main": "app.js",
+    "scripts": {
+      "start": "node app.js"
+    },
+    "author": "Tu Nombre",
+    "license": "MIT",
+    "dependencies": {
+      "express": "^4.17.1"
+    }
+  }
