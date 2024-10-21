@@ -13,7 +13,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    defaults:
+        run:
+          working-directory: aws-ec2-codedeploy/  # Establecer el directorio de trabajo para todos los pasos
     steps:
     # Checkout el repositorio
     - name: Checkout code
