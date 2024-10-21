@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = 3333;
+const port = 80;
 
 // Servir el archivo estático
 app.use(express.static('public'));
