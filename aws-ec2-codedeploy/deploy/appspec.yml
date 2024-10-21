@@ -4,11 +4,11 @@ files:
   - source: /
     destination: /home/ec2-user/snake-app
 hooks:
-  ApplicationStop:
-    - location: scripts/stop_server.sh
+  BeforeInstall:
+    - location: scripts/install_pm2.sh
       timeout: 300
       runas: ec2-user
-  BeforeInstall:
+  ApplicationStop:
     - location: scripts/stop_server.sh
       timeout: 300
       runas: ec2-user

@@ -15,3 +15,5 @@
 
 # Environment files with sensitive information
 .env
+
+node_modules

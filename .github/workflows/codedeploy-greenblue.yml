@@ -1,50 +1,62 @@
 name: Deploy to AWS CodeDeploy
 
 on:
-    workflow_dispatch:
-    push:
-      paths:
-        - 'aws-ec2-codedeploy/**'  # Solo ejecuta el workflow cuando hay cambios dentro de la carpeta awseb
-        - '.github/workflows/codedeploy-greenblue.yml'  # También ejecuta el workflow si se modifica este archivo
-  
-      branches:
-        - master  # Se ejecuta cuando hay un push en la rama master
+  workflow_dispatch:
+  push:
+    paths:
+      - 'aws-ec2-codedeploy/**'  # Solo ejecuta el workflow cuando hay cambios en esta carpeta
+      - '.github/workflows/codedeploy-greenblue.yml'  # O cuando se modifica el archivo del workflow
+    branches:
+      - master  # Ejecutar solo en la rama master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     defaults:
-        run:
-          working-directory: aws-ec2-codedeploy/  # Establecer el directorio de trabajo para todos los pasos
-    steps:
-    # Checkout el repositorio
-    - name: Checkout code
-      uses: actions/checkout@v2
+      run:
+        working-directory: aws-ec2-codedeploy/  # Establece el directorio de trabajo para los pasos
 
-    # Configurar AWS CLI
+    steps:
+    # 1. Checkout el repositorio
+    - name: Checkout code
+      uses: actions/checkout@v2.3.4  # Especificar versión para estabilidad
+
+    # 2. Configurar AWS CLI
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v1.5.7  # Especificar versión
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    # Instalar dependencias y empaquetar la aplicación
+    # 3. Instalar dependencias y empaquetar la aplicación
     - name: Install dependencies
       run: |
+        echo "Instalando dependencias..."
         npm install
+        npm audit  # Verifica si hay problemas de seguridad en las dependencias
         zip -r snake-app.zip .
+      # Añadir manejo de errores
+      continue-on-error: false
 
-    # Subir artefacto a S3
+    # 4. Subir artefacto a S3
     - name: Upload to S3
       run: |
+        echo "Subiendo el paquete a S3..."
         aws s3 cp snake-app.zip s3://snake-app-deployment-bucket/snake-app.zip
+        echo "Subida completada con éxito."
+      # Añadir manejo de errores
+      continue-on-error: false
 
-    # Crear el despliegue en CodeDeploy
+    # 5. Crear el despliegue en CodeDeploy
     - name: Deploy to AWS CodeDeploy
       run: |
+        echo "Iniciando el despliegue en CodeDeploy..."
         aws deploy create-deployment \
           --application-name example-app \
           --deployment-group-name example-deployment-group \
           --s3-location bucket=snake-app-deployment-bucket,bundleType=zip,key=snake-app.zip \
           --deployment-config-name CodeDeployDefault.OneAtATime
+        echo "Despliegue iniciado."
+      # Añadir manejo de errores
+      continue-on-error: false
