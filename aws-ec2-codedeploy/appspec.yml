@@ -3,24 +3,3 @@ os: linux
 files:
   - source: /
     destination: /home/ec2-user/snake-app
-
-hooks:
-  BeforeInstall:
-    - location: scripts/empty_script.sh
-      timeout: 300
-      runas: ec2-user
-
-  AfterInstall:
-    - location: scripts/empty_script.sh
-      timeout: 300
-      runas: ec2-user
-
-  ApplicationStart:
-    - location: scripts/empty_script.sh
-      timeout: 300
-      runas: ec2-user
-
-  ValidateService:
-    - location: scripts/empty_script.sh
-      timeout: 300
-      runas: ec2-user
