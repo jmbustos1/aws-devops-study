@@ -1,0 +1,48 @@
+name: Deploy to AWS CodeDeploy
+
+on:
+    workflow_dispatch:
+    push:
+      paths:
+        - 'aws-ec2-codedeploy/**'  # Solo ejecuta el workflow cuando hay cambios dentro de la carpeta awseb
+        - '.github/workflows/codedeploy-greenblue.yml'  # También ejecuta el workflow si se modifica este archivo
+  
+      branches:
+        - master  # Se ejecuta cuando hay un push en la rama master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout el repositorio
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Configurar AWS CLI
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # Instalar dependencias y empaquetar la aplicación
+    - name: Install dependencies
+      run: |
+        npm install
+        zip -r snake-app.zip .
+
+    # Subir artefacto a S3
+    - name: Upload to S3
+      run: |
+        aws s3 cp snake-app.zip s3://snake-app-deployment-bucket/snake-app.zip
+
+    # Crear el despliegue en CodeDeploy
+    - name: Deploy to AWS CodeDeploy
+      run: |
+        aws deploy create-deployment \
+          --application-name example-app \
+          --deployment-group-name example-deployment-group \
+          --s3-location bucket=snake-app-deployment-bucket,bundleType=zip,key=snake-app.zip \
+          --deployment-config-name CodeDeployDefault.OneAtATime
