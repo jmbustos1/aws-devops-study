@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Do nothing
-        run: echo "This is a placeholder for the general workflow"
+        run: echo "This is a placeholder for the general workflow testing"
