@@ -10,53 +10,56 @@ on:
       - master  # Ejecutar solo en la rama master
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws-ec2-codedeploy/  # Establece el directorio de trabajo para los pasos
 
     steps:
-    # 1. Checkout el repositorio
-    - name: Checkout code
-      uses: actions/checkout@v2.3.4  # Especificar versión para estabilidad
+      # 1. Checkout el código
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    # 2. Configurar AWS CLI
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1.5.7  # Especificar versión
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      # 2. Configurar AWS CLI
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    # 3. Instalar dependencias y empaquetar la aplicación
-    - name: Install dependencies
-      run: |
-        echo "Instalando dependencias..."
-        npm install
-        npm audit  # Verifica si hay problemas de seguridad en las dependencias
-        zip -r snake-app.zip .
-      # Añadir manejo de errores
-      continue-on-error: false
+      # 3. Iniciar sesión en ECR
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
-    # 4. Subir artefacto a S3
-    - name: Upload to S3
-      run: |
-        echo "Subiendo el paquete a S3..."
-        aws s3 cp snake-app.zip s3://snake-app-deployment-bucket/snake-app.zip
-        echo "Subida completada con éxito."
-      # Añadir manejo de errores
-      continue-on-error: false
+      # 4. Construir la imagen Docker
+      - name: Build Docker image
+        run: |
+          docker build -t app-ecr-repository:latest .
 
-    # 5. Crear el despliegue en CodeDeploy
-    - name: Deploy to AWS CodeDeploy
-      run: |
-        echo "Iniciando el despliegue en CodeDeploy..."
-        aws deploy create-deployment \
-          --application-name example-app \
-          --deployment-group-name example-deployment-group \
-          --s3-location bucket=snake-app-deployment-bucket,bundleType=zip,key=snake-app.zip \
-          --deployment-config-name CodeDeployDefault.OneAtATime
-        echo "Despliegue iniciado."
-      # Añadir manejo de errores
-      continue-on-error: false
+      # 5. Etiquetar la imagen para ECR
+      - name: Tag Docker image
+        run: |
+          docker tag app-ecr-repository:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/app-ecr-repository:latest
+
+      # 6. Subir la imagen a ECR
+      - name: Push Docker image to Amazon ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/app-ecr-repository:latest
+          # 7. Obtener ARN de la nueva Task Definition
+        
+      - name: Register new ECS Task Definition
+        id: task-def
+        run: |
+          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+        
+      # 7. Actualizar el servicio de ECS
+      - name: Deploy to AWS CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name frontend-deploy \
+            --deployment-group-name frontend-deploy-group \            
+            --revision "{\"revisionType\":\"AppSpecContent\",\"appSpecContent\":{\"content\":\"version:0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: \\\"${TASK_DEF_ARN}\\\"\n        LoadBalancerInfo:\n          ContainerName: \\\"app\\\"\n          ContainerPort: 80\"}}"        LoadBalancerInfo:\n          ContainerName: \\\"app\\\"\n          ContainerPort: 80\"}}"
