@@ -1,5 +1,9 @@
 version: 0.0
-os: linux
-files:
-  - source: /
-    destination: /home/ec2-user/snake-app
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "<TASK_DEFINITION_ARN>"
+        LoadBalancerInfo:
+          ContainerName: "app"  # El nombre de tu contenedor definido en el Dockerfile
+          ContainerPort: 80
