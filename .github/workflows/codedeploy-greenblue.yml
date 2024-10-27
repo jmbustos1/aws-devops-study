@@ -56,24 +56,34 @@ jobs:
           TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
         
-      # 7. Subir appspec.yml a S3
-      - name: Upload AppSpec file to S3
+      # 7. Registrar nueva Task Definition
+      - name: Register new ECS Task Definition
+        id: task-def-2
         run: |
-          echo "Contents of appspec.yml:"
+          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+        
+      # 8. Modificar y subir AppSpec a S3
+      - name: Modify AppSpec and upload to S3
+        run: |
+          # Reemplazar el marcador en el appspec.yml con el ARN real
+          sed -i "s|<TASK_DEFINITION_ARN>|$TASK_DEF_ARN|g" appspec.yml
+          
+          # Verificar el contenido del archivo modificado
+          echo "Modified AppSpec file:"
           cat appspec.yml
+          
+          # Subir el archivo modificado a S3
           aws s3 cp appspec.yml s3://snake-app-deployment-bucket/appspec.yml
 
-      # 8. Crear despliegue en CodeDeploy
+      # 9. Crear despliegue en CodeDeploy
       - name: Deploy to ECS via CodeDeploy
         run: |
-          # Obtener el ARN de la definición de la tarea ECS
-          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query "taskDefinition.taskDefinitionArn" --output text)
-          echo "Task Definition ARN: $TASK_DEF_ARN"
           # Crear el despliegue en CodeDeploy
           aws deploy create-deployment \
             --application-name frontend-deploy \
             --deployment-group-name frontend-deploy-group \
-            --revision "revisionType=S3, s3Location={bucket=snake-app-deployment-bucket, key=appspec.yml, bundleType=YAML}" \
+            --revision "revisionType=S3,s3Location={bucket=snake-app-deployment-bucket,key=appspec.yml,bundleType=YAML}" \
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce
         env:
           AWS_DEFAULT_REGION: us-east-1
