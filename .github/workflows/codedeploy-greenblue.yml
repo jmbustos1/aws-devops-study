@@ -56,10 +56,16 @@ jobs:
           TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
         
-      # 7. Actualizar el servicio de ECS
-      - name: Deploy to AWS CodeDeploy
+      # 7. Crear despliegue en CodeDeploy
+      - name: Deploy to ECS via CodeDeploy
         run: |
+          # Obtener el ARN de la definición de la tarea ECS
+          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition frontend-task --query "taskDefinition.taskDefinitionArn" --output text)
+          
+          # Crear el despliegue en CodeDeploy
           aws deploy create-deployment \
             --application-name frontend-deploy \
-            --deployment-group-name frontend-deploy-group \            
-            --revision "{\"revisionType\":\"AppSpecContent\",\"appSpecContent\":{\"content\":\"version:0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: '$TASK_DEF_ARN'\n        LoadBalancerInfo:\n          ContainerName: 'app'\n          ContainerPort: 80\"}}"
+            --deployment-group-name frontend-deploy-group \
+            --revision "{\"revisionType\":\"AppSpecContent\",\"appSpecContent\":{\"content\":\"version:0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: \\\"$TASK_DEF_ARN\\\"\n        LoadBalancerInfo:\n          ContainerName: \\\"app\\\"\n          ContainerPort: 80\"}}"
+        env:
+          AWS_DEFAULT_REGION: us-east-1
