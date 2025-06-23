@@ -1,0 +1,8 @@
+// ====LEVANTAR===
+// terraform apply
+// aws ec2 describe-instances --filters "Name=tag:Name,Values=ec2-cursor" --query "Reservations[*].Instances[*].InstanceId" --output text
+
+// ====Destruir===
+// aws ecr list-images --repository-name app_ecr_repo --query 'imageIds[*]' --output json | jq -c '.[]' | while read img; do     aws ecr batch-delete-image --repository-name app_ecr_repo --image-ids "$img"; done
+// aws ecr list-images --repository-name app_ecr_repo --query 'imageIds[*]' --output json | jq -c '.[]' | while read img; do     aws ecr batch-delete-image --repository-name app_ecr_repo --image-ids "$img"; done
+// terraform destroy
