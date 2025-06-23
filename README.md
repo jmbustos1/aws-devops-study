@@ -1,4 +1,3 @@
-# README
 
 # AWS Deployment Proof of Concept
 
